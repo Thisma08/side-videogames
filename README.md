@@ -20,8 +20,9 @@ Le port doit être défini sur 1433 (Port par défaut de SQL Server)
 Si erreur de type:
 ![port_already_allocated_error](https://files.catbox.moe/jcrvyz.png)
 => Regarder les containers en cours d'exécution et arrêter ceux ayant le même port (Dans ce cas 1433).
-#### 2.1.3. Ouvrir SQL Server Management Studio (SSMS)
-#### 2.1.4. Se connecter au container
+### 2.2. Créer la base de données sur le container
+#### 2.2.1. Ouvrir SQL Server Management Studio (SSMS)
+#### 2.2.2. Se connecter au container
 Veiller à ce que le container est en cours d'exécution, que l'ip est sur 127.0.0.1 (Localhost), que le port est bien 1433 et que le mot de passe utilisé est le même que celui précisé dans la commande "docker run":
 
 ![connexion_ssms](https://files.catbox.moe/l8ps4z.png)
@@ -36,20 +37,22 @@ Arrêter la ou les instance(s) locale(s) de SQL Server en cours d'exécution:
 
 ![stopped_sql_server_instance](https://files.catbox.moe/ms8ql6.png)
 
-#### 2.1.5. Créer la base de données
+#### 2.2.3. Créer la base de données
 
 Une fois connecté, cliquer sur "New Query" et créer une nouvelle base de données:
 ![new_database](https://files.catbox.moe/214sbz.png)
 
-#### 2.1.6. Créer une table dans la base de données et y insérer des données:
+#### 2.2.4. Créer une table dans la base de données et y insérer des données:
 ![new_table](https://files.catbox.moe/bpiez7.png)
 ***
 ## 3. Backend
-### 3.1. Lancer Rider
-### 3.2. Créer un projet avec le template "Web API" dans le dossier racine:
+### 3.1. Créer le projet
+#### 3.1.1. Lancer Rider
+#### 3.1.2. Créer un projet avec le template "Web API" dans le dossier racine:
 ![create_web_api_project](https://files.catbox.moe/nqh6jz.png)
-### 3.3. Supprimer le contenu de appsettings.development.json
-### 3.4. Parametrer la connection string:
+### 3.2. Connection string
+#### 3.2.1. Supprimer le contenu de appsettings.development.json
+#### 3.2.2. Parametrer la connection string:
 Y réécrire le nom du container (SQLServer) et son port, le nom de la base de données s'y trouvant (videogames_db), l'utilisateur (sa) et le mot de passe créé dans la commande d'exécution du container (yourStrong(!)Password). 
 
 _appsettings.json_ :
@@ -66,8 +69,7 @@ _appsettings.json_ :
   }
 }
 ```
-
-### 3.5. Parametrer le projet dans program.cs:
+### 3.3. Parametrer le projet dans program.cs:
 
 Ajouter CORS, les controllers, le contexte de la db et Swagger
 
@@ -120,9 +122,10 @@ app.MapControllers();
 
 app.Run();
 ```
-### 3.6. Créer un dossier "Data" dans le projet et une classe "DatabaseContext" dans celui-ci:
+### 3.4. Contexte de la base de données
+#### 3.4.1. Créer un dossier "Data" dans le projet et une classe "DatabaseContext" dans celui-ci:
 ![create_data_drectory_and_databasecontext_class](https://files.catbox.moe/y09wfa.png)
-### 3.7. Créer la classe DatabaseContext:
+#### 3.4.2. Créer la classe DatabaseContext:
 
 Ne pas oublier de la faire hériter de la classe `DbContext` de `EntityFrameworkCore` (`DatabaseContext : DbContext`).
 
@@ -142,7 +145,7 @@ public class DatabaseContext : DbContext
 }
  ```
 
-### 3.8. Créer la classe correspondant à l'/les entité(s) dans la base de données:
+#### 3.4.3. Créer la classe correspondant à l'/les entité(s) dans la base de données:
 
 **Attention:** La créer en dehors de la classe `DatabaseContext`.
 
@@ -157,7 +160,7 @@ public class Videogame
 }
 ```
 
-### 3.9. Construire le modèle
+#### 3.4.4. Construire le modèle
 **Attention:** Veiller à faire correspondre les noms de propriétés dans `.Property()` les noms de colonnes dans `.HasColumnName()` aux noms des colonnes dans la base de données.
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -177,4 +180,28 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
             .HasColumnName("support");
     }
 ```
+### 3.5. Controllers
+#### 3.5.1. Créer un dossier "Controllers" dans le projet et une classe "Controller" dans celui-ci:
+![create_controllers_drectory_and_videogamecontroller_class](https://files.catbox.moe/nd6ws2.png)
+
+#### 3.5.2. Configurer le comportement d'un controller ASP.NET Core API
+Avant la classe ´Controller´, ajouter:
+```csharp
+[Route("api/[controller]")]
+[ApiController]
+```
+Puis faire hériter la classe de la classe `ControllerBase` de `Microsoft.AspNetCore.Mvc`:
+`public class BandesDessineesController : ControllerBase`
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+
+namespace VideogamesAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class VideogameController : ControllerBase {
+}
+```
+
 
