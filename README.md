@@ -49,7 +49,7 @@ Une fois connecté, cliquer sur "New Query" et créer une nouvelle base de donn�
 ### 3.2. Créer un projet avec le template "Web API" dans le dossier racine:
 ![create_web_api_project](https://files.catbox.moe/nqh6jz.png)
 ### 3.3. Supprimer le contenu de appsettings.development.json
-### 3.3. Parametrer la connection string:
+### 3.4. Parametrer la connection string:
 Y réécrire le nom du container (SQLServer) et son port, le nom de la base de données s'y trouvant (videogames_db), l'utilisateur (sa) et le mot de passe créé dans la commande d'exécution du container (yourStrong(!)Password). 
 
 _appsettings.json_ :
@@ -67,7 +67,10 @@ _appsettings.json_ :
 }
 ```
 
-### 3.4. Paramètrer le projet dans program.cs:
+### 3.5. Parametrer le projet dans program.cs:
+
+Ajouter CORS, les controllers, le contexte de la db et Swagger
+
 _program.cs_ :
 ```csharp
 using System.Configuration;
@@ -117,15 +120,61 @@ app.MapControllers();
 
 app.Run();
 ```
-### 3.4. Créer un dossier "Data" dans le projet et une classe "DbContext" dans celui-ci:
-![create_data_drectory_and_dbcontext_class](https://files.catbox.moe/21clcl.png)
-### 3.5. Créer la/les classe(s) correspondant à l'/aux entité(s):
+### 3.6. Créer un dossier "Data" dans le projet et une classe "DatabaseContext" dans celui-ci:
+![create_data_drectory_and_databasecontext_class](https://files.catbox.moe/y09wfa.png)
+### 3.7. Créer la classe DatabaseContext:
+
+Ne pas oublier de la faire hériter de la classe `DbContext` de `EntityFrameworkCore` (`DatabaseContext : DbContext`).
+
 _ContextDb.cs_:
 ```csharp
-public class Videogame {
+using Microsoft.EntityFrameworkCore;
+
+namespace VideogamesAPI.Data;
+
+public class DatabaseContext : DbContext
+{
+    public DbSet<Videogame> Videogames { get; set; }
+
+    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
+    {
+    }
+}
+ ```
+
+### 3.8. Créer la classe correspondant à l'/les entité(s) dans la base de données:
+
+**Attention:** La créer en dehors de la classe `DatabaseContext`.
+
+_ContextDb.cs_:
+```csharp
+public class Videogame
+{
     public int Id { get; set; }
     public string Title { get; set; }
     public string Publisher { get; set; }
     public string Support { get; set; }
- }
- ```
+}
+```
+
+### 3.9. Construire le modèle
+**Attention:** Veiller à faire correspondre les noms de propriétés dans `.Property()` les noms de colonnes dans `.HasColumnName()` aux noms des colonnes dans la base de données.
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Videogame>().ToTable("videogames");
+ 
+        modelBuilder.Entity<Videogame>()
+            .Property(v => v.Title)
+            .HasColumnName("title");
+        
+        modelBuilder.Entity<Videogame>()
+            .Property(v => v.Publisher)
+            .HasColumnName("publisher");
+
+        modelBuilder.Entity<Videogame>()
+            .Property(v => v.Support)
+            .HasColumnName("support");
+    }
+```
+
