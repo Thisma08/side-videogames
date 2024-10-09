@@ -185,7 +185,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ![create_controllers_drectory_and_videogamecontroller_class](https://files.catbox.moe/nd6ws2.png)
 
 #### 3.5.2. Configurer le comportement d'un controller ASP.NET Core API
-Avant la classe ´Controller´, ajouter:
+Avant la classe `Controller`, ajouter:
 ```csharp
 [Route("api/[controller]")]
 [ApiController]
@@ -203,5 +203,57 @@ namespace VideogamesAPI.Controllers;
 public class VideogameController : ControllerBase {
 }
 ```
+
+### 3.5.3. Implémenter les constructeurs
+Définit le contexte de la base de données comme attribut du controller.
+```csharp
+private readonly DatabaseContext _context;
+
+public VideogameController(DatabaseContext context)
+{
+    _context = context;
+}
+```
+
+### 3.5.4. Implémenter les méthodes pour récupérer les infos sur la base de données
+#### 3.5.4.1. Récupérer tout
+```csharp
+[HttpGet]
+public async Task<ActionResult<IEnumerable<Videogame>>> GetVideogames()
+{
+    return await _context.Videogames.ToListAsync();
+}
+```
+
+#### 3.5.4.2. Récupérer par id
+```csharp
+[HttpGet("{id}")]
+public async Task<ActionResult<Videogame>> GetVideogames(int id)
+{
+    var v = await _context.Videogames.FindAsync(id);
+
+    if (v == null)
+    {
+        return NotFound();
+    }
+
+    return v;
+}
+```
+
+### 3.5.5. Implémenter la méthode pour créer une nouvelle entrée
+```csharp
+[HttpPost]
+public async Task<ActionResult<Videogame>> PostVideogames(Videogame videogame)
+{
+    _context.Videogames.Add(videogame);
+    await _context.SaveChangesAsync();
+
+    return CreatedAtAction(nameof(GetVideogames), new { id = videogame.Id }, videogame);
+}
+```
+
+
+
 
 
