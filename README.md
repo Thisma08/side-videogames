@@ -29,7 +29,7 @@ Veiller à ce que le container est en cours d'exécution, que l'ip est sur 127.0
 
 **Remarque:**
 Si erreur de type `Login failed for user "sa"`
-=> Se rendre dans "Computer Management" (Taper "Computer Management" dans la barre de recherche de Windows) > "SQL Server Configuration Manager" > "SQL Server Services":
+=> Soit le mot de passe est erroné, soit il faut se rendre dans "Computer Management" (Taper "Computer Management" dans la barre de recherche de Windows) > "SQL Server Configuration Manager" > "SQL Server Services":
 
 ![computer_management_sql_server](https://files.catbox.moe/r1xqya.png)
 
@@ -320,7 +320,11 @@ Après exécution de _POST_, exécuter _GET_:
 ![get_result](https://files.catbox.moe/lszznc.png)
 
 L'id du nouvel élément ajouté a bien été incrémenté.
-
+***
+## 4. Frontend
+### 4.1. Créer le projet
+#### 4.1.1. Lancer Rider
+#### 4.1.2. Créer un projet avec le template "Web API" dans le dossier racine:
 
 
 
