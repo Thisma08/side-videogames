@@ -53,13 +53,13 @@ Une fois connecté, cliquer sur "New Query" et créer une nouvelle base de donn�
 ### 3.2. Connection string
 #### 3.2.1. Supprimer le contenu de appsettings.development.json
 #### 3.2.2. Parametrer la connection string:
-Y réécrire le nom du container (SQLServer) et son port, le nom de la base de données s'y trouvant (videogames_db), l'utilisateur (sa) et le mot de passe créé dans la commande d'exécution du container (yourStrong(!)Password). 
+Y réécrire `localhost` et le numéro de port (Cela va pointer vers la container au port 1433 sur la machine), le nom de la base de données s'y trouvant (videogames_db), l'utilisateur (sa) et le mot de passe créé dans la commande d'exécution du container (yourStrong(!)Password). 
 
 _appsettings.json_ :
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=SQLServer,1433;Database=videogames_db;User=sa;Password=yourStrong(!)Password;TrustServerCertificate=true"
+    "DefaultConnection": "Server=localhost,1433;Database=videogames_bd;User=sa;Password=yourStrong(!)Password;TrustServerCertificate=true"
   },
   "Logging": {
     "LogLevel": {
@@ -252,6 +252,75 @@ public async Task<ActionResult<Videogame>> PostVideogames(Videogame videogame)
     return CreatedAtAction(nameof(GetVideogames), new { id = videogame.Id }, videogame);
 }
 ```
+
+### 3.6. Tester le backend
+#### 3.6.1. Selectionner la configuration d'exécution _[nom_projet]: http_:
+![run_config](https://files.catbox.moe/i3xpzb.png)
+
+### 3.6.2. Changer l'environnement de _Development_ à _Production_:
+
+Changer la valeur des balise `ASPNETCORE_ENVIRONMENT` en `Production`.
+
+_launchsettings.json_:
+```json
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:53675",
+      "sslPort": 44378
+    }
+  },
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5278",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7075;http://localhost:5278",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      }
+    }
+  }
+}
+```
+
+### 3.6.3. Se rendre à l'url http://localhost:5278
+Sur la page qui s'affiche, il est possible de tester les différents endpoints de l'API.
+
+![swagger_ui](https://files.catbox.moe/mn8kr5.png)
+
+**Remarque:** Lors du test de l'endpoint _POST_, il faut laisser l'id à 0, car il sera automatiquement généré.
+
+![post_example](https://files.catbox.moe/lduo23.png)
+
+Après exécution de _POST_, exécuter _GET_:
+
+![get_result](https://files.catbox.moe/lszznc.png)
+
+L'id du nouvel élément ajouté a bien été incrémenté.
+
 
 
 
