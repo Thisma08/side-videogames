@@ -323,8 +323,9 @@ L'id du nouvel élément ajouté a bien été incrémenté.
 ***
 ## 4. Frontend
 ### 4.1. Créer le projet
-#### 4.1.1. Lancer Rider
-#### 4.1.2. Créer un projet avec le template "Web API" dans le dossier racine:
+#### 4.1.1. Lancer Webstorm
+#### 4.1.2. Créer un projet Angular CLI dans le dossier racine:
+![create_angular_cli_project](https://files.catbox.moe/d2x7kd.png)
 
 
 
