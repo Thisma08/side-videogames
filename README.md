@@ -327,6 +327,124 @@ L'id du nouvel élément ajouté a bien été incrémenté.
 #### 4.1.2. Créer un projet Angular CLI dans le dossier racine:
 ![create_angular_cli_project](https://files.catbox.moe/d2x7kd.png)
 
+### 4.2. Implémenter le service
+Ouvrir la console, puis taper la commande `ng g s api`.
+Cela va créer les fichiers _api.service.ts_ et _api.service.spec.ts_
+
+Dans _api.service.ts_, préciser l'url de l'api (Consultable dans le menu "Endpoints" de Rider) et les différentes méthodes participant au CRUD.
+
+_api.service.ts_:
+```typescript
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import {HttpClient} from '@angular/common/http';
+
+export interface Videogame {
+  id: number;
+  title: string;
+  publisher: string;
+  support: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ApiService {
+
+  private apiUrl = 'http://localhost:5278/api/Videogame';
+
+  constructor(private http: HttpClient) { }
+
+  getVideogames(): Observable<Videogame[]> {
+    return this.http.get<Videogame[]>(this.apiUrl);
+  }
+
+  getVideogame(id: number): Observable<Videogame> {
+    return this.http.get<Videogame>(`${this.apiUrl}/${id}`);
+  }
+
+  createVideogame(videogame: Videogame): Observable<Videogame> {
+    return this.http.post<Videogame>(this.apiUrl, videogame);
+  }
+}
+```
+**Remarque**: Si erreur de type `ERROR NullInjectorError: R3InjectorError(Environment Injector)[_ApiService -> _HttpClient -> _HttpClient]:
+NullInjectorError: No provider for _HttpClient!` dans la console du navigateur => Importer `HttpClientModule` dans le fichier _app.config.ts_:
+
+_app.config.ts_:
+
+```typescript
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import {provideHttpClient} from "@angular/common/http";
+
+export const appConfig: ApplicationConfig = {
+providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes), provideHttpClient()]
+};
+```
+
+### 4.3. Créer une liste des entrées dans la base de données
+#### 4.3.1 Créer la classe du composant "liste"
+
+Ouvrir la console, puis taper la commande `ng g c videogame-list`.
+Cela va créer les fichiers _videogame-list.component.ts_, _videogame-list.component.spec.ts_, _videogame-list.component.html_ et _videogame-list.component.css_.
+
+Dans _videogame-list.component.ts_, initialiser une liste vide, inclure le service précedemment créé dans le constructeur et récupérer les données dans la DB lorsque le composant s'initialise (Il doit implémenter la classe `OnInit` et les instructions à exécuter lors de l'initialisation du component doivent être dans la méthode `ngOnInit()`).
+
+_videogame-list.component.ts_:
+```typescript
+import {Component, OnInit} from '@angular/core';
+import {ApiService, Videogame} from '../api.service';
+
+@Component({
+  selector: 'app-videogame-list',
+  standalone: true,
+  imports: [],
+  templateUrl: './videogame-list.component.html',
+  styleUrl: './videogame-list.component.css'
+})
+export class VideogameListComponent implements OnInit {
+  videogames: Videogame[] = [];
+
+  constructor(private apiService: ApiService) { }
+
+  ngOnInit(): void {
+    this.apiService.getVideogames().subscribe(data => {
+      this.videogames = data;
+    });
+  }
+
+}
+```
+
+#### 4.3.2 Créer la vue du composant "liste"
+
+_videogame-list.component.html_:
+
+```html
+<h1>Videogames List</h1>
+<ul>
+    @for(videogame of videogames; track $index) {
+    <li>
+        {{ videogame.title }} - {{ videogame.publisher }} - On: {{ videogame.support }}
+    </li>
+    }
+</ul>
+```
+
+**Remarque**: Ne pas oublier d'ajouter `track $index` dans la boucle `for`. Elle a besoin de traquer les éléments pour pouvoir fonctionner correctement.
+
+### 4.4. Tester le frontend
+
+Lancer le serveur Angular CLI, puis se rendre à l'URL http://localhost:4200/ (Indiquée dans la console de l'IDE lors du démarrage).
+
+![angular_result](https://files.catbox.moe/6hdrfa.png)
+
+Les différents éléments présents dans la base de données sont bien affichés sur la page web.
+
+
 
 
 
