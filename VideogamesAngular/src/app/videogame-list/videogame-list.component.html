@@ -1,0 +1,8 @@
+<h1>Videogames List</h1>
+<ul>
+  @for(videogame of videogames; track $index) {
+    <li>
+      {{ videogame.title }} - {{ videogame.publisher }} - On: {{ videogame.support }}
+    </li>
+  }
+</ul>
