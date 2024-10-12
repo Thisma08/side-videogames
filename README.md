@@ -23,7 +23,7 @@ Si erreur de type:
 ### 2.2. Créer la base de données sur le container
 #### 2.2.1. Ouvrir SQL Server Management Studio (SSMS)
 #### 2.2.2. Se connecter au container
-Veiller à ce que le container est en cours d'exécution, que l'ip est sur 127.0.0.1 (Localhost), que le port est bien 1433 et que le mot de passe utilisé est le même que celui précisé dans la commande "docker run":
+Veiller à ce que le container est en cours d'exécution, que l'ip est sur 127.0.0.1 (Localhost), que le port est bien 1433 et que le mot de passe utilisé est le même que celui précisé dans la commande `docker run`:
 
 ![connexion_ssms](https://files.catbox.moe/l8ps4z.png)
 
@@ -458,6 +458,128 @@ COPY . .
 EXPOSE 4200
 CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "4200"]
 ```
+
+### 5.2. Dockerisation du backend
+A la racine du projet WebApi dans la solution, créer un Dockerfile.
+
+```dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["VideogamesAPI/VideogamesAPI/VideogamesAPI.csproj", "VideogamesAPI/"]
+RUN dotnet restore "VideogamesAPI/VideogamesAPI.csproj"
+COPY VideogamesAPI/VideogamesAPI/. ./VideogamesAPI/
+WORKDIR "/src/VideogamesAPI"
+RUN dotnet build "VideogamesAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "VideogamesAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "VideogamesAPI.dll"]
+```
+
+Il faudra également mettre à jour la connection string. Remplacer la valeur dans `Server` (`localhost,1433`) par `db,1433`.
+
+_appsettings.json_:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=db,1433;Database=videogames_bd;User=sa;Password=yourStrong(!)Password;TrustServerCertificate=true"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}
+```
+
+**Remarque:** Faire particulièrement attention au nom de la base de données dans la connection string, si il est bien le même que celui de la base de données sur le serveur SQL Server. SI l'on a une erreur de type "The login failed", cela est probablement causé par des noms qui ne correspondent pas.
+
+### 5.3. Docker compose
+
+A la racine du projet, créer un fichier _docker-compose.yml_. Il va reprendre les différents services (Base de données, frontend et backend) que l'application va fournir.
+
+_docker-compose.yml:_
+```yaml
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: videogamesDb
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=yourStrong(!)Password
+    ports:
+      - "1433:1433"
+    volumes:
+      - M:/SQL/data:/var/opt/mssql/data
+      - M:/SQL/log:/var/opt/mssql/log
+      - M:/SQL/secrets:/var/opt/mssql/secrets
+    networks:
+      - vg-network
+    restart: always
+    
+  frontend:
+    build:
+      context: ./VideogamesAngular  
+      dockerfile: Dockerfile
+    container_name: videogamesAngular
+    ports:
+      - "8080:4200"
+    networks:
+      - vg-network
+
+  backend:
+    build: 
+      context: .
+      dockerfile: VideogamesApi/VideogamesApi/Dockerfile 
+    container_name: videogamesApi
+    ports:
+      - "5000:80"
+    depends_on:
+      - db
+    networks:
+      - vg-network
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=videogames_bd;User Id=sa;Password=yourStrong(!)Password;TrustServerCertificate=true
+    restart: always
+
+networks:
+  vg-network:
+    driver: bridge
+```
+
+**Remarque:** Veiller à ce que le nom du serveur dans la connection string dans le fichier _docker-compose.yml_ soit le même que celui dans la connecton string dans la fichier _appsettings.json_ de l'API.
+
+## 6. Construire et lancer l'application
+
+### 6.1. Construire l'application avec docker-compose.
+Se rendre à la racine du projet (Là où se trouve le fichier _docker-compose.yml_, et ouvrir l'invite de commandes (cmd), puis taper la commande `docker compose up --build`.
+
+### 6.2. Tester l'application
+Une fois l'application construite, se rendre dans Docker Desktop. On y trouvera le groupe des 3 containers correspondants au 3 services précisés dans le fichier _docker-compose.yml_:
+
+![docker_desktop](https://files.catbox.moe/bz70po.png)
+
+Pour tester l'application, il suffit de cliquer sur le lien menant au frontend (8080:4200), ou se rendre à l'url http://localhost:8080:
+
+![angular_ports](https://files.catbox.moe/goh4tm.png)
+
+Le résultat est le même que précedemment, sauf que l'application est maintenant dockerisée et facilement exécutable sur n'iporte quelle machine.
+
+![final_webpage](https://files.catbox.moe/dnnlom.png)
 
 
 
