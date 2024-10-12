@@ -577,7 +577,7 @@ Pour tester l'application, il suffit de cliquer sur le lien menant au frontend (
 
 ![angular_ports](https://files.catbox.moe/goh4tm.png)
 
-Le résultat est le même que précedemment, sauf que l'application est maintenant dockerisée et facilement exécutable sur n'iporte quelle machine.
+Le résultat est le même que précedemment, sauf que l'application est maintenant dockerisée et facilement exécutable sur n'importe quelle machine.
 
 ![final_webpage](https://files.catbox.moe/dnnlom.png)
 
