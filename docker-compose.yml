@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: videogamesDb
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=yourStrong(!)Password
+    ports:
+      - "1433:1433"
+    volumes:
+      - M:/SQL/data:/var/opt/mssql/data
+      - M:/SQL/log:/var/opt/mssql/log
+      - M:/SQL/secrets:/var/opt/mssql/secrets
+    networks:
+      - vg-network
+    restart: always
+    
+  frontend:
+    build:
+      context: ./VideogamesAngular  
+      dockerfile: Dockerfile
+    container_name: videogamesAngular
+    ports:
+      - "8080:4200"
+    networks:
+      - vg-network
+
+  backend:
+    build: 
+      context: .
+      dockerfile: VideogamesApi/VideogamesApi/Dockerfile 
+    container_name: videogamesApi
+    ports:
+      - "5000:80"
+    depends_on:
+      - db
+    networks:
+      - vg-network
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=videogames_bd;User Id=sa;Password=yourStrong(!)Password;TrustServerCertificate=true
+    restart: always
+
+networks:
+  vg-network:
+    driver: bridge

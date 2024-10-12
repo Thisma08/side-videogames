@@ -14,7 +14,7 @@ export interface Videogame {
 })
 export class ApiService {
 
-  private apiUrl = 'http://localhost:5278/api/Videogame';
+  private apiUrl = 'http://localhost:5000/api/Videogame';
 
   constructor(private http: HttpClient) { }
 

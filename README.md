@@ -444,6 +444,20 @@ Lancer le serveur Angular CLI, puis se rendre à l'URL http://localhost:4200/ (I
 
 Les différents éléments présents dans la base de données sont bien affichés sur la page web.
 
+## 5. Dockerisation
+### 5.1. Dockerisation du frontend
+A la racine du projet Angular, créer un Dockerfile.
+
+_Dockerfile_:
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 4200
+CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "4200"]
+```
 
 
 
